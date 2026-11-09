@@ -5,10 +5,10 @@
 mod common;
 pub mod document;
 mod extension;
+mod formula;
 mod highlight;
 mod html;
 mod markdown;
-mod formula;
 #[cfg(feature = "math")]
 mod math;
 mod parts;

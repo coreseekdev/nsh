@@ -186,6 +186,21 @@ impl RichEditorSelection {
     }
 }
 
+/// A press over the editor's content: the document position under the
+/// pointer and where it happened, for bindings on parts of the document.
+#[derive(Debug, Clone, Copy, Default, PartialEq, JsObject)]
+#[non_exhaustive]
+pub struct RichEditorPress {
+    /// The document position under the pointer.
+    pub pos: u32,
+    /// Position in the content box (points from its top-left).
+    pub x: f64,
+    /// Its vertical position, likewise.
+    pub y: f64,
+    /// The click count (1 = single, 2 = double, ...).
+    pub clicks: u32,
+}
+
 /// The events of a [`RichEditor`].
 #[derive(Debug, Clone, PartialEq, Event)]
 pub enum RichEditorEvent {
@@ -209,6 +224,10 @@ pub enum RichEditorEvent {
     /// The mouse moved over the editor (its content): where, with the
     /// modifiers and the button held.
     Motion(MouseEvent),
+    /// A press over the editor (its content): where in the document, and
+    /// where on the page.  The editor's own press handling runs first.
+    #[args(press)]
+    Press(RichEditorPress),
 }
 
 /// The methods of a [`RichEditor`]'s ref.

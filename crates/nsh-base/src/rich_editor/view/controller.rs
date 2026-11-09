@@ -1358,6 +1358,14 @@ impl Rv {
         let pos = match hit {
             Hit::Text(pos, _) | Hit::Node(pos) => pos,
         };
+        self.cx.emit(RichEditorEvent::Press(
+            crate::rich_editor::view::RichEditorPress {
+                pos: pos as u32,
+                x: at.x.0 as f64,
+                y: at.y.0 as f64,
+                clicks,
+            },
+        ));
         if let Hit::Node(node_pos) = hit
             && let Some(node) = doc.node_at(node_pos)
             && let Some(view) = self.node_view(node.ty().name())

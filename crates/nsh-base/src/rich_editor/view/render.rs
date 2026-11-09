@@ -20,12 +20,12 @@ use nsh_core::{
 use serde_json::Value;
 
 use super::{
+    RichEditorEvent,
     controller::{BlockItem, Rv, slot_id},
     geometry::{DOC, InlineMap, Run},
     node_view::{MarkView, NodeView, NodeViewCx},
     parts::{self, Part},
     table,
-    RichEditorEvent,
 };
 use crate::{
     input,
