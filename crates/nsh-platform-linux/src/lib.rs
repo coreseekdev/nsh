@@ -50,6 +50,41 @@ mod transition;
 mod view;
 
 pub use gtk4;
+
+/// The system clipboard's text, read synchronously for hosts that need an
+/// answer in the current turn (Tk's `clipboard get`): the main context runs
+/// until GTK's asynchronous read answers (at most one second, then empty).
+pub fn clipboard_text_blocking() -> String {
+    use gtk4 as gtk;
+    use gtk::prelude::*;
+
+    let Some(display) = gtk::gdk::Display::default() else {
+        return String::new();
+    };
+    let clipboard = display.clipboard();
+    let (tx, rx) = std::sync::mpsc::channel();
+    clipboard.read_text_async(None::<&gtk::gio::Cancellable>, move |result| {
+        let text = result
+            .ok()
+            .flatten()
+            .map(|text| text.to_string())
+            .unwrap_or_default();
+        let _ = tx.send(text);
+    });
+    let context = gtk::glib::MainContext::default();
+    let deadline = std::time::Instant::now() + std::time::Duration::from_millis(1000);
+    loop {
+        match rx.try_recv() {
+            Ok(text) => return text,
+            Err(std::sync::mpsc::TryRecvError::Disconnected) => return String::new(),
+            Err(std::sync::mpsc::TryRecvError::Empty) => {}
+        }
+        if std::time::Instant::now() > deadline {
+            return String::new();
+        }
+        context.iteration(false);
+    }
+}
 pub use nsh_core::platform::{Appearance, Locale};
 pub use nsh_engine::{
     App, Bundle, ByteSize, CacheLocation, CacheOptions, CachePolicy, Limits, Root,
