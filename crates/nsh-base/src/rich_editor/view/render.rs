@@ -97,6 +97,7 @@ pub(crate) fn render(rv: Rv) -> impl IntoElement {
 fn content(rv: Rv) -> impl IntoElement {
     let desktop = is_desktop();
     let (down, tap, mov, up, end) = (rv.clone(), rv.clone(), rv.clone(), rv.clone(), rv.clone());
+    let release = rv.clone();
     let over = rv.clone();
     let placed = rv.clone();
     let wheel = rv.clone();
@@ -117,6 +118,11 @@ fn content(rv: Rv) -> impl IntoElement {
     .on(EventKind::PressDown, move |p: &EventPayload| {
         if let (true, EventPayload::Press(e)) = (desktop, p) {
             down.press(e.position, e.page_position, e.modifiers, e.clicks.max(1));
+        }
+    })
+    .on(EventKind::PressUp, move |p: &EventPayload| {
+        if let EventPayload::Press(e) = p {
+            release.press_release(e.position, e.clicks.max(1));
         }
     })
     // Where the pointer is, for drags the app starts from a page point.
@@ -156,8 +162,8 @@ fn content(rv: Rv) -> impl IntoElement {
     }))
     .keep_touches(desktop)
     .on_responder_move(move |e: &ResponderEvent| mov.drag_to(e.page))
-    .on_responder_release(move |e: &ResponderEvent| up.release(Some(e.page)))
-    .on_responder_terminate(move |e: &ResponderEvent| end.release(Some(e.page)))
+    .on_responder_release(move |e: &ResponderEvent| up.release())
+    .on_responder_terminate(move |e: &ResponderEvent| end.release())
     .child(selection_rects(rv.clone()))
     .child(blocks(rv.clone(), DOC))
     .child(table::controls(rv.clone()))

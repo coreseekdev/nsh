@@ -317,7 +317,7 @@ impl Rv {
                             rv.drag_block(pos, page);
                         }
                         ViewRequest::DragTo(page) => rv.drag_to(page),
-                        ViewRequest::EndDrag => rv.release(None),
+                        ViewRequest::EndDrag => rv.release(),
                         ViewRequest::Place => rv.place(),
                     }
                 }
@@ -1319,6 +1319,23 @@ impl Rv {
 
     // Presses.
 
+    /// A press was released at `at` in the content box: tell the app where
+    /// in the document (for tag bindings and the like).
+    pub(crate) fn press_release(&self, at: Point<Points>, clicks: u32) {
+        let pos = match self.hit(at) {
+            Some(Hit::Text(pos, _) | Hit::Node(pos)) => Some(pos),
+            None => None,
+        };
+        if let Some(pos) = pos {
+            self.cx.emit(RichEditorEvent::Release(RichEditorPress {
+                pos: pos as u32,
+                x: at.x.0 as f64,
+                y: at.y.0 as f64,
+                clicks,
+            }));
+        }
+    }
+
     /// A press at `at` in the content box.
     pub(crate) fn press(
         &self,
@@ -1888,28 +1905,7 @@ impl Rv {
 
     /// The press ended: a drag that moves the selection drops it where
     /// the drop cursor is, or selects as a press when it never moved.
-    pub(crate) fn release(&self, page: Option<Point<Points>>) {
-        let at = page.and_then(|page| {
-            let (shift, scroll) = self.pointer.get()?;
-            Some(Point::new(
-                page.x + shift.x,
-                page.y + shift.y + (self.scrolled.get() - scroll),
-            ))
-        });
-        if let Some(at) = at {
-            let pos = match self.hit(at) {
-                Some(Hit::Text(pos, _) | Hit::Node(pos)) => Some(pos),
-                None => None,
-            };
-            if let Some(pos) = pos {
-                self.cx.emit(RichEditorEvent::Release(RichEditorPress {
-                    pos: pos as u32,
-                    x: at.x.0 as f64,
-                    y: at.y.0 as f64,
-                    clicks: 1,
-                }));
-            }
-        }
+    pub(crate) fn release(&self) {
         if self.table_dragging() {
             return self.table_release();
         }
