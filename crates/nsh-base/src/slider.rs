@@ -246,6 +246,8 @@ pub enum SliderEvent {
     /// A press began on the track or a thumb (before any drag), for hosts
     /// that mirror Tk's `<Button-1>`.
     PressStart,
+    /// The slider's frame changed (its bounds relative to its parent).
+    Layout(Bounds<Points>),
 }
 
 /// One of a slider's thumbs: a range's start, or the end (a single
@@ -731,5 +733,9 @@ pub fn Slider(props: SliderProps, cx: Scope<SliderEvent>) -> impl IntoElement {
         .app_class(props.track_class)
         .inline_style(props.track_style)
         .child(indicator);
-    view().disabled(disabled).child(track).child(props.children)
+    view()
+        .disabled(disabled)
+        .on_layout(move |bounds: &Bounds<Points>| cx.emit(SliderEvent::Layout(*bounds)))
+        .child(track)
+        .child(props.children)
 }

@@ -44,6 +44,8 @@ pub enum ButtonEvent {
     PressDown,
     /// The press ended: released, moved away or cancelled.
     PressUp,
+    /// The button's frame changed (its bounds relative to its parent).
+    Layout(Bounds<Points>),
 }
 
 /// A press target that owns its behavior (presses, the disabled and
@@ -71,5 +73,6 @@ pub fn Button(props: ButtonProps, cx: Scope<ButtonEvent>) -> impl IntoElement {
         .on_press(move |_: &()| cx.emit(ButtonEvent::Press))
         .on_press_down(move |_: &()| cx.emit(ButtonEvent::PressDown))
         .on_press_up(move |_: &()| cx.emit(ButtonEvent::PressUp))
+        .on_layout(move |bounds: &Bounds<Points>| cx.emit(ButtonEvent::Layout(*bounds)))
         .child(props.children)
 }

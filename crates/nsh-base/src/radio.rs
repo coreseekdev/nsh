@@ -51,6 +51,8 @@ pub enum RadioEvent {
     /// uncheck itself.
     #[args(checked)]
     Change(bool),
+    /// The radio's frame changed (its bounds relative to its parent).
+    Layout(Bounds<Points>),
 }
 
 /// One option of a set the user picks exactly one of (a plan, a sort
@@ -98,6 +100,7 @@ pub fn Radio(props: RadioProps, cx: Scope<RadioEvent>) -> impl IntoElement {
                 cx.emit(RadioEvent::Change(true));
             }
         })
+        .on_layout(move |bounds: &Bounds<Points>| cx.emit(RadioEvent::Layout(*bounds)))
         .child(props.children)
 }
 

@@ -60,6 +60,8 @@ pub enum CheckboxEvent {
     /// from checked.
     #[args(checked)]
     Change(bool),
+    /// The checkbox's frame changed (its bounds relative to its parent).
+    Layout(Bounds<Points>),
 }
 
 /// A control that is checked, unchecked or indeterminate (an option, an
@@ -100,6 +102,7 @@ pub fn Checkbox(props: CheckboxProps, cx: Scope<CheckboxEvent>) -> impl IntoElem
             let next = indeterminate.get_untracked() || !checked.get_untracked();
             cx.emit(CheckboxEvent::Change(next))
         })
+        .on_layout(move |bounds: &Bounds<Points>| cx.emit(CheckboxEvent::Layout(*bounds)))
         .child(
             view()
                 .project_checked(shows_checked)
