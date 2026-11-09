@@ -46,6 +46,12 @@ pub enum ButtonEvent {
     PressUp,
     /// The button's frame changed (its bounds relative to its parent).
     Layout(Bounds<Points>),
+    /// The mouse came over the button.
+    MouseEnter(MouseEvent),
+    /// The mouse left the button.
+    MouseLeave(MouseEvent),
+    /// The mouse moved over the button.
+    MouseMove(MouseEvent),
 }
 
 /// A press target that owns its behavior (presses, the disabled and
@@ -74,5 +80,8 @@ pub fn Button(props: ButtonProps, cx: Scope<ButtonEvent>) -> impl IntoElement {
         .on_press_down(move |_: &()| cx.emit(ButtonEvent::PressDown))
         .on_press_up(move |_: &()| cx.emit(ButtonEvent::PressUp))
         .on_layout(move |bounds: &Bounds<Points>| cx.emit(ButtonEvent::Layout(*bounds)))
+        .on_mouse_enter(move |e: &MouseEvent| cx.emit(ButtonEvent::MouseEnter(*e)))
+        .on_mouse_leave(move |e: &MouseEvent| cx.emit(ButtonEvent::MouseLeave(*e)))
+        .on_mouse_move(move |e: &MouseEvent| cx.emit(ButtonEvent::MouseMove(*e)))
         .child(props.children)
 }

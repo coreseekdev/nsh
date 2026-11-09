@@ -62,6 +62,12 @@ pub enum CheckboxEvent {
     Change(bool),
     /// The checkbox's frame changed (its bounds relative to its parent).
     Layout(Bounds<Points>),
+    /// The mouse came over the checkbox.
+    MouseEnter(MouseEvent),
+    /// The mouse left the checkbox.
+    MouseLeave(MouseEvent),
+    /// The mouse moved over the checkbox.
+    MouseMove(MouseEvent),
 }
 
 /// A control that is checked, unchecked or indeterminate (an option, an
@@ -103,6 +109,9 @@ pub fn Checkbox(props: CheckboxProps, cx: Scope<CheckboxEvent>) -> impl IntoElem
             cx.emit(CheckboxEvent::Change(next))
         })
         .on_layout(move |bounds: &Bounds<Points>| cx.emit(CheckboxEvent::Layout(*bounds)))
+        .on_mouse_enter(move |e: &MouseEvent| cx.emit(CheckboxEvent::MouseEnter(*e)))
+        .on_mouse_leave(move |e: &MouseEvent| cx.emit(CheckboxEvent::MouseLeave(*e)))
+        .on_mouse_move(move |e: &MouseEvent| cx.emit(CheckboxEvent::MouseMove(*e)))
         .child(
             view()
                 .project_checked(shows_checked)

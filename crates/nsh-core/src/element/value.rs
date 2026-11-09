@@ -480,6 +480,49 @@ impl JsValue for crate::geometry::Point<crate::geometry::Points> {
     }
 }
 
+/// The mouse over a view, as component events carry it (`onMouseEnter`).
+impl JsValue for crate::MouseEvent {
+    fn ts_type(_types: &mut TsTypes) -> String {
+        "MouseEvent".into()
+    }
+
+    fn from_js(value: JsIn<'_>) -> Result<Self, PropError> {
+        if value.kind() != JsKind::Object {
+            return Err(value.expected("a mouse event object"));
+        }
+        let position = field_of(value, "position")?;
+        let page_position = field_of(value, "pagePosition")?;
+        let modifiers = crate::keymap::Modifiers::default();
+        let pressed_button = None;
+        Ok(Self::new(position, page_position, modifiers, pressed_button))
+    }
+
+    fn to_js<'a>(&self, host: &'a dyn JsHost) -> Result<JsOwned<'a>, PropError> {
+        let owned = JsOwned::new(host, host.new_object()?);
+        let object = owned.get().raw();
+        host.set_field(object, "position", self.position.to_js(host)?.into_raw())?;
+        host.set_field(
+            object,
+            "pagePosition",
+            self.page_position.to_js(host)?.into_raw(),
+        )?;
+        let modifiers = JsOwned::new(host, host.new_object()?);
+        let mods = modifiers.get().raw();
+        host.set_field(mods, "shift", host.new_bool(self.modifiers.shift))?;
+        host.set_field(mods, "ctrl", host.new_bool(self.modifiers.ctrl))?;
+        host.set_field(mods, "alt", host.new_bool(self.modifiers.alt))?;
+        host.set_field(mods, "cmd", host.new_bool(self.modifiers.cmd))?;
+        host.set_field(object, "modifiers", modifiers.into_raw())?;
+        match self.pressed_button {
+            Some(button) => {
+                host.set_field(object, "pressedButton", host.new_string(button.name())?)?
+            }
+            None => host.set_field(object, "pressedButton", host.null())?,
+        }
+        Ok(owned)
+    }
+}
+
 /// A size in points: TS's `Size` (`{ width, height }`).
 impl JsValue for crate::geometry::Size<crate::geometry::Points> {
     fn ts_type(_types: &mut TsTypes) -> String {

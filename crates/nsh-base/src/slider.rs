@@ -248,6 +248,12 @@ pub enum SliderEvent {
     PressStart,
     /// The slider's frame changed (its bounds relative to its parent).
     Layout(Bounds<Points>),
+    /// The mouse came over the slider.
+    MouseEnter(MouseEvent),
+    /// The mouse left the slider.
+    MouseLeave(MouseEvent),
+    /// The mouse moved over the slider.
+    MouseMove(MouseEvent),
 }
 
 /// One of a slider's thumbs: a range's start, or the end (a single
@@ -736,6 +742,9 @@ pub fn Slider(props: SliderProps, cx: Scope<SliderEvent>) -> impl IntoElement {
     view()
         .disabled(disabled)
         .on_layout(move |bounds: &Bounds<Points>| cx.emit(SliderEvent::Layout(*bounds)))
+        .on_mouse_enter(move |e: &MouseEvent| cx.emit(SliderEvent::MouseEnter(*e)))
+        .on_mouse_leave(move |e: &MouseEvent| cx.emit(SliderEvent::MouseLeave(*e)))
+        .on_mouse_move(move |e: &MouseEvent| cx.emit(SliderEvent::MouseMove(*e)))
         .child(track)
         .child(props.children)
 }

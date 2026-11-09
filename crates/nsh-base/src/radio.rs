@@ -53,6 +53,12 @@ pub enum RadioEvent {
     Change(bool),
     /// The radio's frame changed (its bounds relative to its parent).
     Layout(Bounds<Points>),
+    /// The mouse came over the radio.
+    MouseEnter(MouseEvent),
+    /// The mouse left the radio.
+    MouseLeave(MouseEvent),
+    /// The mouse moved over the radio.
+    MouseMove(MouseEvent),
 }
 
 /// One option of a set the user picks exactly one of (a plan, a sort
@@ -101,6 +107,9 @@ pub fn Radio(props: RadioProps, cx: Scope<RadioEvent>) -> impl IntoElement {
             }
         })
         .on_layout(move |bounds: &Bounds<Points>| cx.emit(RadioEvent::Layout(*bounds)))
+        .on_mouse_enter(move |e: &MouseEvent| cx.emit(RadioEvent::MouseEnter(*e)))
+        .on_mouse_leave(move |e: &MouseEvent| cx.emit(RadioEvent::MouseLeave(*e)))
+        .on_mouse_move(move |e: &MouseEvent| cx.emit(RadioEvent::MouseMove(*e)))
         .child(props.children)
 }
 
