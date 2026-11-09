@@ -243,6 +243,9 @@ pub enum SliderEvent {
     /// `SliderEvent::Release`).
     #[args(value)]
     ChangeEnd(SliderValue),
+    /// A press began on the track or a thumb (before any drag), for hosts
+    /// that mirror Tk's `<Button-1>`.
+    PressStart,
 }
 
 /// One of a slider's thumbs: a range's start, or the end (a single
@@ -606,6 +609,7 @@ pub fn Slider(props: SliderProps, cx: Scope<SliderEvent>) -> impl IntoElement {
             label: None,
         };
         let said = stored(None::<AccessibilityValue>);
+        let press_cx = ctl.cx.clone();
         view()
             .absolute()
             .map(|v| match ctl.axis {
@@ -645,7 +649,9 @@ pub fn Slider(props: SliderProps, cx: Scope<SliderEvent>) -> impl IntoElement {
             // A press makes it a stop of the keyboard focus (Tab) on the
             // platforms that move it between pressables; the drag is the
             // responder's.
-            .on_press(|| {})
+            .on_press(move || {
+                press_cx.emit(SliderEvent::PressStart);
+            })
             .on_focus(move || focused.set(Some(which)))
             .on_blur(move || {
                 if focused.get_untracked() == Some(which) {
@@ -705,6 +711,7 @@ pub fn Slider(props: SliderProps, cx: Scope<SliderEvent>) -> impl IntoElement {
             move || thumb(Thumb::Start),
         ))
         .child(thumb(Thumb::End));
+    let press_track_cx = ctl.cx.clone();
     let track = view()
         .group()
         .project_disabled(disabled)
@@ -714,7 +721,10 @@ pub fn Slider(props: SliderProps, cx: Scope<SliderEvent>) -> impl IntoElement {
             }
         }))
         .keep_touches(true)
-        .on_responder_grant(move |e: &ResponderEvent| ctl.press_track(e))
+        .on_responder_grant(move |e: &ResponderEvent| {
+            press_track_cx.emit(SliderEvent::PressStart);
+            ctl.press_track(e)
+        })
         .on_responder_move(move |e: &ResponderEvent| ctl.drag_to(ctl.offset(e)))
         .on_responder_release(move |_: &ResponderEvent| ctl.release())
         .on_responder_terminate(move |_: &ResponderEvent| ctl.release())
