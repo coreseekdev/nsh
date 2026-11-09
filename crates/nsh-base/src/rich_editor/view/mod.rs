@@ -245,6 +245,10 @@ pub enum RichEditorEvent {
     /// and where on the page.
     #[args(hover)]
     Hover(RichEditorHover),
+    /// A press was released over the editor: where in the document, and
+    /// where on the page.
+    #[args(release)]
+    Release(RichEditorPress),
 }
 
 /// The methods of a [`RichEditor`]'s ref.

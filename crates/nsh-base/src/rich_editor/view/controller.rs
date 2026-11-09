@@ -20,8 +20,8 @@ use serde_json::Value;
 use unicode_segmentation::UnicodeSegmentation;
 
 use super::{
-    RichEditorChange, RichEditorEvent, RichEditorFile, RichEditorPastedFiles, RichEditorProps,
-    RichEditorSelection,
+    RichEditorChange, RichEditorEvent, RichEditorFile, RichEditorPastedFiles, RichEditorPress,
+    RichEditorProps, RichEditorSelection,
     geometry::{DOC, Geometry, Hit},
     keys::{self, Move, Unit},
     node_view::{NodeView, NodeViewEvent},
@@ -317,7 +317,7 @@ impl Rv {
                             rv.drag_block(pos, page);
                         }
                         ViewRequest::DragTo(page) => rv.drag_to(page),
-                        ViewRequest::EndDrag => rv.release(),
+                        ViewRequest::EndDrag => rv.release(None),
                         ViewRequest::Place => rv.place(),
                     }
                 }
@@ -1888,7 +1888,28 @@ impl Rv {
 
     /// The press ended: a drag that moves the selection drops it where
     /// the drop cursor is, or selects as a press when it never moved.
-    pub(crate) fn release(&self) {
+    pub(crate) fn release(&self, page: Option<Point<Points>>) {
+        let at = page.and_then(|page| {
+            let (shift, scroll) = self.pointer.get()?;
+            Some(Point::new(
+                page.x + shift.x,
+                page.y + shift.y + (self.scrolled.get() - scroll),
+            ))
+        });
+        if let Some(at) = at {
+            let pos = match self.hit(at) {
+                Some(Hit::Text(pos, _) | Hit::Node(pos)) => Some(pos),
+                None => None,
+            };
+            if let Some(pos) = pos {
+                self.cx.emit(RichEditorEvent::Release(RichEditorPress {
+                    pos: pos as u32,
+                    x: at.x.0 as f64,
+                    y: at.y.0 as f64,
+                    clicks: 1,
+                }));
+            }
+        }
         if self.table_dragging() {
             return self.table_release();
         }
