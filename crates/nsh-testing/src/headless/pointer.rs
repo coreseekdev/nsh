@@ -504,16 +504,7 @@ impl Headless {
             }
             self.send(id, EventKind::MouseEnter, self.mouse_at(id, at));
         }
-        for &id in &self.screen.chain(target) {
-            eprintln!(
-                "CHAIN id={id:?} enter={} leave={} move={}",
-                self.screen.hears(id, EventKind::MouseEnter),
-                self.screen.hears(id, EventKind::MouseLeave),
-                self.screen.hears(id, EventKind::MouseMove)
-            );
-        }
         for id in views {
-            eprintln!("HOVER MOVE id={id:?} hears={}", self.screen.hears(id, EventKind::MouseMove));
             self.send(id, EventKind::MouseMove, self.mouse_at(id, at));
         }
         self.done()
