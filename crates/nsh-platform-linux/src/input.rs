@@ -2103,6 +2103,9 @@ fn wheel_input(
                 // (Tk's `<MouseWheel>` on a canvas or text).
                 return wheel_over(surface, x, y, dx * 120.0, dy * 120.0, state);
             };
+            // Tk bindings on the view under the pointer hear the wheel too,
+            // beside the scroll view scrolling (a text editor's scroll).
+            wheel_over(surface, x, y, dx * 120.0, dy * 120.0, state);
             *input.latch.borrow_mut() = Some((view.clone(), horizontal, time));
             let (dx, dy) = if notches {
                 let s = view.state();
@@ -2144,6 +2147,7 @@ fn wheel_input(
                 *input.wheel.borrow_mut() = Some(new_wheel(view.clone(), time));
                 crate::scroll::wheel_begin(surface, &view);
             }
+            wheel_over(surface, x, y, dx, dy, state);
             let view = {
                 let mut wheel = input.wheel.borrow_mut();
                 let Some(w) = wheel.as_mut() else {

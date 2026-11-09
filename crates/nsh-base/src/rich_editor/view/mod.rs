@@ -203,6 +203,9 @@ pub enum RichEditorEvent {
     Focus,
     /// The editor lost the focus.
     Blur,
+    /// A wheel or trackpad scroll over the editor: the delta in points
+    /// (positive: content moves down/right).
+    Wheel(Point<Points>),
 }
 
 /// The methods of a [`RichEditor`]'s ref.

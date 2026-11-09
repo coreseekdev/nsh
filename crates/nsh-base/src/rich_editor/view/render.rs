@@ -25,6 +25,7 @@ use super::{
     node_view::{MarkView, NodeView, NodeViewCx},
     parts::{self, Part},
     table,
+    RichEditorEvent,
 };
 use crate::{
     input,
@@ -98,6 +99,7 @@ fn content(rv: Rv) -> impl IntoElement {
     let (down, tap, mov, up, end) = (rv.clone(), rv.clone(), rv.clone(), rv.clone(), rv.clone());
     let over = rv.clone();
     let placed = rv.clone();
+    let wheel = rv.clone();
     let height = rv.content_height;
     part(
         view()
@@ -121,6 +123,9 @@ fn content(rv: Rv) -> impl IntoElement {
         if let EventPayload::Mouse(e) = p {
             over.note_pointer(e.position, e.page_position);
         }
+    })
+    .on_wheel(move |e: &WheelEvent| {
+        wheel.cx.emit(RichEditorEvent::Wheel(e.delta));
     })
     .on(EventKind::Press, move |p: &EventPayload| {
         if desktop {
