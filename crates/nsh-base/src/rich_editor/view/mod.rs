@@ -206,6 +206,9 @@ pub enum RichEditorEvent {
     /// A wheel or trackpad scroll over the editor: the delta in points
     /// (positive: content moves down/right).
     Wheel(Point<Points>),
+    /// The mouse moved over the editor (its content): where, with the
+    /// modifiers and the button held.
+    Motion(MouseEvent),
 }
 
 /// The methods of a [`RichEditor`]'s ref.

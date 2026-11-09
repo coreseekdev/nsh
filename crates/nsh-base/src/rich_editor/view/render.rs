@@ -100,6 +100,7 @@ fn content(rv: Rv) -> impl IntoElement {
     let over = rv.clone();
     let placed = rv.clone();
     let wheel = rv.clone();
+    let motion = rv.clone();
     let height = rv.content_height;
     part(
         view()
@@ -122,6 +123,7 @@ fn content(rv: Rv) -> impl IntoElement {
     .on(EventKind::MouseMove, move |p: &EventPayload| {
         if let EventPayload::Mouse(e) = p {
             over.note_pointer(e.position, e.page_position);
+            motion.cx.emit(RichEditorEvent::Motion(*e));
         }
     })
     .on_wheel(move |e: &WheelEvent| {
