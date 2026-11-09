@@ -1402,6 +1402,15 @@ pub trait Interactive: Element {
         )
     }
 
+    /// A wheel or trackpad scroll over it (or an element inside it), where
+    /// and by how much.
+    fn on_wheel<M>(self, listener: impl IntoListener<crate::WheelEvent, M>) -> Self {
+        self.on(
+            EventKind::Wheel,
+            events::typed(listener.into_listener(), events::wheel),
+        )
+    }
+
     /// The mouse moved over it (or an element inside it), with or without
     /// a button down ([`MouseEvent::pressed_button`]), or a modifier key
     /// changed while it rests there with none down: where, in it and in its

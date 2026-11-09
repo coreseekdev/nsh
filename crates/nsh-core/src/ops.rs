@@ -252,6 +252,7 @@ events! {
     FileRequest = "onFileRequest": "A [`Command::FileRequest`] finished (root only; payload: [`EventPayload::FileRequest`]).",
     Speech = "onSpeech": "A speech recognition session reported (root only; payload: [`EventPayload::Speech`]).",
     Download = "onDownload": "A web view's download started, finished or failed (payload: `state`, `id`, `url`, `filename`, `path`; `bytes` once finished, `message` when it failed).",
+    Wheel = "onWheel": "The mouse wheel or a trackpad scrolled over the view (payload: [`WheelEvent`]: where, and the delta in points).",
 
 }
 
@@ -404,6 +405,20 @@ pub struct MouseEvent {
     pub modifiers: crate::keymap::Modifiers,
     /// The button held down, if any (a drag).
     pub pressed_button: Option<MouseButton>,
+}
+
+/// A wheel or trackpad scroll over a view (`onWheel`): where it happened,
+/// and the delta in points (positive: content moves down/right).
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub struct WheelEvent {
+    /// Position in the view, its transforms undone.
+    pub position: crate::geometry::Point<crate::geometry::Points>,
+    /// Position in the root view the view is in.
+    pub page_position: crate::geometry::Point<crate::geometry::Points>,
+    /// The scroll delta in points.
+    pub delta: crate::geometry::Point<crate::geometry::Points>,
+    /// The modifier keys held.
+    pub modifiers: crate::keymap::Modifiers,
 }
 
 impl MouseEvent {
@@ -760,6 +775,8 @@ pub enum EventPayload {
     /// The mouse over a view (`onMouseEnter`, `onMouseMove`,
     /// `onMouseLeave`).
     Mouse(MouseEvent),
+    /// A wheel or trackpad scroll over a view (`onWheel`).
+    Wheel(WheelEvent),
     /// A context menu asked for over a view (`onContextMenu`).
     ContextMenu(ContextMenuEvent),
     /// Where the pointer was at a press (`onPress`, `onLongPress`,

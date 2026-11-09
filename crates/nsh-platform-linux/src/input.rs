@@ -732,7 +732,7 @@ fn scroll_event(
     if kind == notches && dx == 0.0 && modifiers.contains(gdk::ModifierType::SHIFT_MASK) {
         (dx, dy) = (dy, dx);
     }
-    if wheel_input(surface, x, y, dx, dy, time, kind) {
+    if wheel_input(surface, x, y, dx, dy, time, kind, modifiers) {
         glib::Propagation::Stop
     } else {
         glib::Propagation::Proceed
@@ -2077,6 +2077,7 @@ fn wheel_input(
     dy: f32,
     time: f64,
     kind: WheelInput,
+    state: gdk::ModifierType,
 ) -> bool {
     let input = &surface.input;
     match kind {
@@ -2098,7 +2099,9 @@ fn wheel_input(
             };
             let Some(view) = latched.or_else(|| scroll_target(surface, x, y, dx, dy)) else {
                 input.latch.borrow_mut().take();
-                return false;
+                // No scroll view: the view under the pointer hears the wheel
+                // (Tk's `<MouseWheel>` on a canvas or text).
+                return wheel_over(surface, x, y, dx * 120.0, dy * 120.0, state);
             };
             *input.latch.borrow_mut() = Some((view.clone(), horizontal, time));
             let (dx, dy) = if notches {
@@ -2136,7 +2139,7 @@ fn wheel_input(
             }
             if input.wheel.borrow().is_none() {
                 let Some(view) = scroll_target(surface, x, y, dx, dy) else {
-                    return false;
+                    return wheel_over(surface, x, y, dx, dy, state);
                 };
                 *input.wheel.borrow_mut() = Some(new_wheel(view.clone(), time));
                 crate::scroll::wheel_begin(surface, &view);
@@ -2166,6 +2169,41 @@ fn wheel_input(
             true
         }
     }
+}
+
+/// A wheel or touchpad scroll with no scroll view under the pointer: the
+/// innermost view there that listens to `onWheel` hears it (Tk's
+/// `<MouseWheel>` on a canvas, an input or plain view).
+fn wheel_over(
+    surface: &Rc<Surface>,
+    x: f32,
+    y: f32,
+    dx: f32,
+    dy: f32,
+    state: gdk::ModifierType,
+) -> bool {
+    let views = pick(&surface.root, x, y)
+        .map(|hit| chain(&hit.view))
+        .unwrap_or_default();
+    for view in views {
+        let (id, listens) = {
+            let s = view.state();
+            (s.id, s.events.contains(EventKind::Wheel))
+        };
+        if !listens {
+            continue;
+        }
+        let (lx, ly) = local(surface, &view, x, y);
+        let event = nsh_core::WheelEvent {
+            position: point(Points(lx), Points(ly)),
+            page_position: point(Points(x), Points(y)),
+            delta: point(Points(dx), Points(dy)),
+            modifiers: modifiers(state),
+        };
+        surface.event(id, EventKind::Wheel, EventPayload::Wheel(event));
+        return true;
+    }
+    false
 }
 
 fn new_wheel(view: NshView, time: f64) -> Wheel {

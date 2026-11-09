@@ -480,6 +480,13 @@ pub(crate) fn press(p: &EventPayload) -> Option<Cow<'_, PressEvent>> {
     }
 }
 
+pub(crate) fn wheel(p: &EventPayload) -> Option<Cow<'_, crate::WheelEvent>> {
+    match p {
+        EventPayload::Wheel(e) => Some(Cow::Borrowed(e)),
+        _ => None,
+    }
+}
+
 pub(crate) fn mouse(p: &EventPayload) -> Option<Cow<'_, MouseEvent>> {
     match p {
         EventPayload::Mouse(e) => Some(Cow::Borrowed(e)),

@@ -241,5 +241,6 @@ pub use crate::element::{
     try_apple_keys, try_global, try_os, untracked, use_context, watch_scroll, web_input_available,
     when, window,
 };
+pub use crate::WheelEvent;
 #[cfg(not(target_arch = "wasm32"))]
 pub use crate::element::{background, blocking};

@@ -1562,6 +1562,24 @@ impl Headless {
         self.done()
     }
 
+    /// The step `wheel(<selector>, <dx>, <dy>)`: a wheel or trackpad scroll
+    /// over the view `selector` names, by `(dx, dy)` points (positive:
+    /// content moves down/right).
+    pub fn wheel(&mut self, selector: &str, dx: Points, dy: Points) -> Result<(), String> {
+        let parsed = Selector::parse(selector)?;
+        self.step(format!("wheel({selector})"));
+        let pick = self.screen.pressable(&parsed);
+        let id = self.picked(pick, selector, "wheel target")?;
+        let event = nsh_core::WheelEvent {
+            position: Point::default(),
+            page_position: Point::default(),
+            delta: Point::new(dx, dy),
+            modifiers: nsh_core::keymap::Modifiers::default(),
+        };
+        self.send(id, EventKind::Wheel, EventPayload::Wheel(event));
+        self.done()
+    }
+
     /// The step `submit(<selector>)`: the return key in the input
     /// `selector` names, as its `submitBehavior` says: `onSubmit`
     /// (and the focus leaves it, by default in a single line), or a line

@@ -89,7 +89,7 @@ pub use crate::{
         DialogButtonStyle, EventKind, EventMask, EventPayload, HeaderSlot, HeaderSystemItem,
         IMAGE_SCALES, ImageProp, ImageScales, ImageSource, KeyboardAppearance, KeyboardDismissMode,
         KeyboardTaps, KeyboardType, ListContentStyle, ListViewport, ModalAnimation,
-        ModalPresentation, ModalProp, MouseButton, MouseEvent, NativeProp, NodeId, Op, OverlayProp,
+        ModalPresentation, ModalProp, MouseButton, MouseEvent, NativeProp, NodeId, Op, OverlayProp, WheelEvent,
         PasteBehavior, PasteEvent, PastedFile, PayloadValue, PressEvent, Prop, ROOT_ID, ResizeMode,
         ReturnKeyType, ScreenAnimation, ScreenProp, ScrollProp, ScrollbarSetting, SnapAlignment,
         StatusBarConfig, StatusBarSetting, StatusBarStyle, SubmitBehavior, Tag, TouchEvent,

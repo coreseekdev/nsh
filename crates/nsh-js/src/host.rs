@@ -1193,6 +1193,12 @@ fn payload_object<'js>(cx: &Ctx<'js>, payload: &EventPayload) -> rquickjs::Resul
             obj.set("modifiers", modifiers_object(cx, modifiers)?)?;
             obj.set("clickCount", *clicks)?;
         }
+        EventPayload::Wheel(e) => {
+            obj.set("position", point_object(cx, e.position)?)?;
+            obj.set("pagePosition", point_object(cx, e.page_position)?)?;
+            obj.set("delta", point_object(cx, e.delta)?)?;
+            obj.set("modifiers", modifiers_object(cx, &e.modifiers)?)?;
+        }
         EventPayload::Mouse(e) => {
             obj.set("position", point_object(cx, e.position)?)?;
             obj.set("pagePosition", point_object(cx, e.page_position)?)?;
