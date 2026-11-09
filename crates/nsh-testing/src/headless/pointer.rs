@@ -8,7 +8,8 @@
 //! the finger moves away.
 
 use nsh_core::{
-    EventKind, EventPayload, NodeId, Point, Points, ROOT_ID, TouchEvent, TouchPhase, TouchPoint,
+    EventKind, EventPayload, MouseButton, NodeId, Point, Points, ROOT_ID, TouchEvent, TouchPhase,
+    TouchPoint,
     geometry::point,
     input::{
         self, Candidate, Gate, Grab, GrabOptions, PAN_SLOP, PRESS_RETENTION, PRESS_SLOP,
@@ -199,6 +200,22 @@ impl Headless {
         }
         if finger.reporting {
             self.touch(TouchPhase::Move, finger, activated);
+        }
+        // A desktop's mouse drag fires MouseMoves with the button held
+        // (the widgets' <B1-Motion>): dispatch them to the view the press
+        // landed on, as the platforms do for a hovered dragged view.
+        if self.environment.desktop() {
+            let event = nsh_core::MouseEvent::new(
+                point(finger.at.x - finger.origin.x, finger.at.y - finger.origin.y),
+                finger.at,
+                nsh_core::keymap::Modifiers::default(),
+                Some(MouseButton::Left),
+            );
+            self.engine.control().dispatch_event(
+                finger.target,
+                EventKind::MouseMove,
+                EventPayload::Mouse(event),
+            );
         }
         let distance = Points(tx.0.hypot(ty.0));
         // JS hears of the first move only now: its responder gets a chance
