@@ -121,6 +121,12 @@ fn content(rv: Rv) -> impl IntoElement {
         }
     })
     // Where the pointer is, for drags the app starts from a page point.
+    .on(EventKind::MouseLeave, {
+        let left = rv.clone();
+        move |_: &EventPayload| {
+            left.cx.emit(RichEditorEvent::HoverOut);
+        }
+    })
     .on(EventKind::MouseMove, move |p: &EventPayload| {
         if let EventPayload::Mouse(e) = p {
             over.note_pointer(e.position, e.page_position);

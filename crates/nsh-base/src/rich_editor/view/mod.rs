@@ -249,6 +249,8 @@ pub enum RichEditorEvent {
     /// where on the page.
     #[args(release)]
     Release(RichEditorPress),
+    /// The pointer left the editor's content.
+    HoverOut,
 }
 
 /// The methods of a [`RichEditor`]'s ref.
