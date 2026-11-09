@@ -303,6 +303,12 @@ impl RichEditorApi {
     pub fn set_selection(&self, anchor: u32, head: u32) {
         self.rv.select_range(anchor as usize, head as usize);
     }
+
+    /// Scrolls the position into view without moving the caret (Tk's
+    /// `text see`).
+    pub fn scroll_to(&self, pos: u32) {
+        self.rv.scroll_pos_into_view(pos as usize);
+    }
 }
 
 /// A rich text editor: the document of an [`EditorSession`] rendered with

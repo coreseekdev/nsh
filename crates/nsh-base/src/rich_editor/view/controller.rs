@@ -2128,6 +2128,27 @@ impl Rv {
             .or_else(|| geo.caret_rect(sel.head(), sel.affinity()))
     }
 
+    /// Scrolls `pos` into view without moving the caret.
+    pub(crate) fn scroll_pos_into_view(&self, pos: usize) {
+        let Some(caret) = self.geo.borrow().caret_rect(pos, Affinity::Downstream) else {
+            return;
+        };
+        let top = self.scroll_y.get_untracked();
+        let height = self.viewport.get_untracked().height;
+        if height <= px(0.0) {
+            return;
+        }
+        let y = if caret.origin.y < top {
+            caret.origin.y
+        } else if caret.origin.y + caret.size.height > top + height {
+            caret.origin.y + caret.size.height - height
+        } else {
+            return;
+        };
+        self.scroll
+            .scroll_to(Point::new(px(0.0), y.max(px(0.0))), false);
+    }
+
     /// Scrolls the head into view, once it is laid out.
     fn scroll_into_view(&self) {
         let state = self.session.state();
