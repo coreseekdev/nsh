@@ -201,6 +201,19 @@ pub struct RichEditorPress {
     pub clicks: u32,
 }
 
+/// The pointer over the editor's content: the document position under it
+/// and where it is.
+#[derive(Debug, Clone, Copy, Default, PartialEq, JsObject)]
+#[non_exhaustive]
+pub struct RichEditorHover {
+    /// The document position under the pointer.
+    pub pos: u32,
+    /// Position in the content box (points from its top-left).
+    pub x: f64,
+    /// Its vertical position, likewise.
+    pub y: f64,
+}
+
 /// The events of a [`RichEditor`].
 #[derive(Debug, Clone, PartialEq, Event)]
 pub enum RichEditorEvent {
@@ -228,6 +241,10 @@ pub enum RichEditorEvent {
     /// where on the page.  The editor's own press handling runs first.
     #[args(press)]
     Press(RichEditorPress),
+    /// The pointer moved over the editor's content: where in the document,
+    /// and where on the page.
+    #[args(hover)]
+    Hover(RichEditorHover),
 }
 
 /// The methods of a [`RichEditor`]'s ref.

@@ -20,9 +20,9 @@ use nsh_core::{
 use serde_json::Value;
 
 use super::{
-    RichEditorEvent,
+    RichEditorEvent, RichEditorHover,
     controller::{BlockItem, Rv, slot_id},
-    geometry::{DOC, InlineMap, Run},
+    geometry::{DOC, Hit, InlineMap, Run},
     node_view::{MarkView, NodeView, NodeViewCx},
     parts::{self, Part},
     table,
@@ -124,6 +124,17 @@ fn content(rv: Rv) -> impl IntoElement {
         if let EventPayload::Mouse(e) = p {
             over.note_pointer(e.position, e.page_position);
             motion.cx.emit(RichEditorEvent::Motion(*e));
+            let pos = match over.hit(e.position) {
+                Some(Hit::Text(pos, _) | Hit::Node(pos)) => Some(pos),
+                None => None,
+            };
+            if let Some(pos) = pos {
+                motion.cx.emit(RichEditorEvent::Hover(RichEditorHover {
+                    pos: pos as u32,
+                    x: e.position.x.0 as f64,
+                    y: e.position.y.0 as f64,
+                }));
+            }
         }
     })
     .on_wheel(move |e: &WheelEvent| {
