@@ -505,6 +505,7 @@ impl Headless {
             self.send(id, EventKind::MouseEnter, self.mouse_at(id, at));
         }
         for id in views {
+            eprintln!("HOVER MOVE id={id:?} hears={}", self.screen.hears(id, EventKind::MouseMove));
             self.send(id, EventKind::MouseMove, self.mouse_at(id, at));
         }
         self.done()
