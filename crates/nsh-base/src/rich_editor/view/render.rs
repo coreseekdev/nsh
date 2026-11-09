@@ -120,11 +120,6 @@ fn content(rv: Rv) -> impl IntoElement {
             down.press(e.position, e.page_position, e.modifiers, e.clicks.max(1));
         }
     })
-    .on(EventKind::PressUp, move |p: &EventPayload| {
-        if let EventPayload::Press(e) = p {
-            release.press_release(e.position, e.clicks.max(1));
-        }
-    })
     // Where the pointer is, for drags the app starts from a page point.
     .on(EventKind::MouseMove, move |p: &EventPayload| {
         if let EventPayload::Mouse(e) = p {
@@ -147,10 +142,11 @@ fn content(rv: Rv) -> impl IntoElement {
         wheel.cx.emit(RichEditorEvent::Wheel(e.delta));
     })
     .on(EventKind::Press, move |p: &EventPayload| {
-        if desktop {
-            return;
-        }
         if let EventPayload::Press(e) = p {
+            if desktop {
+                release.press_release(e.position, e.clicks.max(1));
+                return;
+            }
             tap.press(e.position, e.page_position, e.modifiers, e.clicks.max(1));
         }
     })
