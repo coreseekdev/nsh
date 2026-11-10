@@ -133,6 +133,7 @@ const BRIDGE: &str = "window.nsh = window.nsh || { postMessage: function (data) 
 
 // The loader, linked statically (webview2-com-sys imports it from
 // `WebView2Loader.dll`, which would have to ship next to every app).
+#[cfg(target_env = "msvc")]
 #[link(name = "WebView2LoaderStatic", kind = "static")]
 unsafe extern "system" {
     #[link_name = "CreateCoreWebView2EnvironmentWithOptions"]
@@ -142,6 +143,53 @@ unsafe extern "system" {
         options: *mut std::ffi::c_void,
         handler: *mut std::ffi::c_void,
     ) -> HRESULT;
+}
+
+/// The loader off MSVC: the static one is an MSVC library that MinGW cannot
+/// link, so `WebView2Loader.dll` is loaded when the first web view is made.
+/// An app that shows none runs without it; one that does ships it next to
+/// the executable, and shows the placeholder when it is missing.
+///
+/// # Safety
+///
+/// As `CreateCoreWebView2EnvironmentWithOptions`: the strings are valid or
+/// null, and `handler` is a live completion handler.
+#[cfg(not(target_env = "msvc"))]
+unsafe fn create_environment(
+    browser_folder: PCWSTR,
+    user_data_folder: PCWSTR,
+    options: *mut std::ffi::c_void,
+    handler: *mut std::ffi::c_void,
+) -> HRESULT {
+    use windows::Win32::System::LibraryLoader::{GetProcAddress, LoadLibraryW};
+    type Create = unsafe extern "system" fn(
+        PCWSTR,
+        PCWSTR,
+        *mut std::ffi::c_void,
+        *mut std::ffi::c_void,
+    ) -> HRESULT;
+    static LOADER: std::sync::OnceLock<Option<Create>> = std::sync::OnceLock::new();
+    let create = LOADER.get_or_init(|| {
+        // SAFETY: a library by name and an entry point of the signature
+        // WebView2's loader documents; the library is never unloaded.
+        unsafe {
+            let module = LoadLibraryW(w!("WebView2Loader.dll")).ok()?;
+            let entry = GetProcAddress(
+                module,
+                windows::core::s!("CreateCoreWebView2EnvironmentWithOptions"),
+            )?;
+            Some(std::mem::transmute::<
+                unsafe extern "system" fn() -> isize,
+                Create,
+            >(entry))
+        }
+    });
+    match create {
+        // SAFETY: the caller's contract is the entry point's.
+        Some(create) => unsafe { create(browser_folder, user_data_folder, options, handler) },
+        // ERROR_MOD_NOT_FOUND.
+        None => HRESULT::from_win32(126),
+    }
 }
 
 /// A web view: its visuals and, once made, its controller.
